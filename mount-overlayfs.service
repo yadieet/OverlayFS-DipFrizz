@@ -1,0 +1,17 @@
+#File: /usr/lib/systemd/system/mount-overlayfs.service
+
+[Unit]
+Description=YSA OverlayFS DipFrizz
+DefaultDependencies=no
+After=systemd-remount-fs.service
+Before=local-fs.target systemd-journald.service sysinit.target systemd-backlight@backlight:acpi_video0.service systemd-backlight@backlight:radeon_bl0.service systemd-rfkill@rfkill0.service systemd-rfkill@rfkill1.service systemd-random-seed.service
+Wants=local-fs.target
+RequiresMountsFor=/boot /var /home /temp
+
+[Service]
+Type=oneshot
+ExecStart=/boot/over/mount-overlayfs
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target

@@ -1,0 +1,240 @@
+#!/bin/bash
+
+## File: /boot/over/mount-overlayfs
+
+## YSA OverlayFS DipFrizz
+## Boot and running GNU/Linux system READ ONLY using OverlayFS
+## -- https://github.com/yadieet/OverlayFS-DipFrizz
+## -- yadieet sa <qts19bit@gmail.com>
+
+# Default mode : Keep Session
+mode=2
+
+# Log file
+logfile="/tmp/DipFrizz.log"
+
+# Sub directories of root partition to be overlayed
+rpsdirs=(\
+"usr" \
+"etc" \
+"mnt" \
+"root" \
+"opt" \
+"srv" \
+)
+
+# Separate partitions of root subdirs
+spmdirs=(\
+"var" \
+"home" \
+"temp" \
+)
+
+# Separate partition uuids of root subdirs
+spuuids=(\
+"5147dfb7-a198-4e27-8e00-f29c752a427f" \
+"574eceb8-4fe5-494f-a194-5399ccdec9be" \
+"2743c114-7cb9-41cf-8755-eb585059ca48" \
+)
+
+# Script-home partition & directory
+ocpuuid="69c91ae4-ffa5-49ae-a088-13e7b35d027d"
+ocdir="/boot/over"
+
+# Target disk/partition (partition label), mountpoint dir, work dir
+oplabel="UF32-OFS"
+opmp="/boot/over/n"
+olwdir="$opmp/lay"
+
+# Printout configuration
+date +"%A, %_d %B %Y - %T %Z" >> "$logfile"
+echo "===================================================" >> "$logfile"
+echo "YSA OverlayFS DipFrizz" >> "$logfile"
+echo "Boot and running GNU/Linux system READ ONLY using OverlayFS" >> "$logfile"
+echo "-- yadieet sa <qts19bit@gmail.com>" >> "$logfile"
+echo >> "$logfile"
+#echo -n "Mode     : " >> "$logfile"
+#[[ $mode == 1 ]] && echo "DipFrizz"  >> "$logfile" || echo "Keep Session" >> "$logfile"
+echo "Log File : $logfile" >> "$logfile"
+
+echo -n "RPS dirs : " >> "$logfile"
+for (( i=0; i<${#rpsdirs[@]}; i++ )) do	echo -n "${rpsdirs[$i]} " >> "$logfile"; done
+
+echo -ne "\nSPM dirs : " >> "$logfile"
+for (( i=0; i<${#spmdirs[@]}; i++ )) do	echo -n "${spmdirs[$i]} " >> "$logfile"; done
+
+echo -e "\nSP uuids :" >> "$logfile"
+for (( i=0; i<${#spuuids[@]}; i++ )) do	echo "           ${spuuids[$i]}" >> "$logfile"; done
+
+echo -e "\nOCP uuid : $ocpuuid" >> "$logfile"
+echo "OC dir   : $ocdir" >> "$logfile"
+echo "OP label : $oplabel" >> "$logfile"
+echo "OP mp    : $opmp" >> "$logfile"
+echo "OL wdir  : $olwdir" >> "$logfile"
+echo "===================================================" >> "$logfile"
+
+function tweak_afterCreateNewSession()
+{
+	echo "Tweaking afterCreateNewSession.." >> "$logfile"
+
+	chown root:trusted_users "$olwdir/temp"
+	chmod 775 "$olwdir/temp"
+}
+
+function tweak_afterMountOP()
+{
+	echo "Tweaking afterMountOP.." >> "$logfile"
+
+	"$opmp/delete-junks"
+
+	rm /home/yadieet/.cache
+	ln -s "$opmp/.cache" /home/yadieet/.cache
+}
+
+function newSession()
+{
+	echo "Creating new session.." >> "$logfile"
+
+	rm -rf "$olwdir/work"
+	mkdir "$olwdir/work"
+
+	for (( i=0; i<${#rpsdirs[@]}; i++ )) do
+		rm -rf "$olwdir/${rpsdirs[$i]}"
+		mkdir  "$olwdir/${rpsdirs[$i]}"
+		mkdir  "$olwdir/work/${rpsdirs[$i]}"
+	done
+
+	for (( i=0; i<${#spmdirs[@]}; i++ )) do
+		rm -rf "$olwdir/${spmdirs[$i]}"
+		mkdir  "$olwdir/${spmdirs[$i]}"
+		mkdir  "$olwdir/work/${spmdirs[$i]}"
+	done
+	
+	# TWEAKZ
+	tweak_afterCreateNewSession	
+}
+
+function checkSession()
+{
+	echo "Checking session.." >> "$logfile"
+
+	if [[ ! -e "$ocdir/DO-NOT-DELETE-ME" ]]; then return 0; fi
+		a=`cat "$ocdir/DO-NOT-DELETE-ME"`
+	if [[ -z $a ]]; then return 1; fi
+
+	if [[ ! -e "$olwdir/DO-NOT-DELETE-ME" ]]; then return 0; fi
+		b=`cat "$olwdir/DO-NOT-DELETE-ME"`
+	if [[ -z $b ]]; then return 1; fi
+
+	if [[ $a != $b ]]; then return 1; fi
+
+	return 2
+}
+
+function deleteSID()
+{
+	echo "Deleting SID on '$ocdir'.." >> "$logfile"
+	mount -o remount,rw "/dev/disk/by-uuid/$ocpuuid"
+	rm "$ocdir/DO-NOT-DELETE-ME"
+	mount -o remount,ro "/dev/disk/by-uuid/$ocpuuid"
+}
+
+
+# Check overlay target disk/partition
+if [[ ! -e "/dev/disk/by-label/$oplabel" ]]; then
+	deleteSID
+	echo "Disk labelled '$oplabel' is not exist." >> "$logfile"
+	echo "YSA OverlayFS is not active on this boot." >> "$logfile"
+	echo "Warning: For next boot, any session WILL be invalid and destroyed." >> "$logfile"
+	echo "Finished." >> "$logfile"
+	exit
+fi
+
+
+# Fsck (random)
+if [[ $((`date +%s`%2)) == 0 ]]; then 
+	echo "Fsck on disk labelled '$oplabel'.." >> "$logfile"
+	fsck.ext4 -fp "/dev/disk/by-label/$oplabel"
+fi
+
+# Mount overlay target disk/partition
+echo "Mounting disk/partition labelled '$oplabel'.." >> "$logfile"
+if [[ ! -d $opmp ]]; then
+	deleteSID
+	echo "Error, mountpoint dir '$opmp' is not exist." >> "$logfile"
+	echo "YSA OverlayFS is not active on this boot. " >> "$logfile"
+	echo "Warning: For next boot, any session WILL be invalid and destroyed." >> "$logfile"
+	echo "Finished." >> "$logfile"
+	exit
+fi
+mount -t ext4 -o rw,noatime "/dev/disk/by-label/$oplabel" "$opmp"
+mkdir -p "$olwdir"
+
+
+# TWEAKZ
+tweak_afterMountOP
+
+
+# Check request disable
+if [[ -e "$olwdir/act/disable" ]]; then
+	echo "File '$olwdir/disable' exist. Cancelled." >> "$logfile"
+	echo "YSA OverlayFS is not active on this boot. " >> "$logfile"
+	echo "Warning: For next boot, any session WILL be invalid and destroyed." >> "$logfile"
+	echo "Finished." >> "$logfile"
+	exit
+fi
+
+
+# Check DipFrizz mode
+if [[ -e "$olwdir/act/DipFrizz" ]]; then
+	mode=1
+fi
+echo -n "Mode     : " >> "$logfile"
+[[ $mode == 1 ]] && echo "DipFrizz"  >> "$logfile" || echo "Keep Session" >> "$logfile"
+
+
+# Check session
+if [[ $mode == 2 ]]; then
+	checkSession
+	isValid=$?
+
+	if [[ $isValid != 2 ]]; then
+		echo "Session invalid." >> "$logfile"
+		newSession
+	else
+		echo "Session valid." >> "$logfile"
+	fi
+else
+	newSession
+fi
+
+
+echo "Saving SID.." >> "$logfile"
+mount -o remount,rw "/dev/disk/by-uuid/$ocpuuid"
+id=`date +%s`
+echo $id > "$ocdir/DO-NOT-DELETE-ME"
+if [[ $mode == 2 ]]; then
+	echo $id > "$olwdir/DO-NOT-DELETE-ME"
+else
+	echo 0 > "$olwdir/DO-NOT-DELETE-ME"
+fi
+mount -o remount,ro "/dev/disk/by-uuid/$ocpuuid"
+
+
+echo "Applying overlayfs.." >> "$logfile"
+for (( i=0; i<${#spmdirs[@]}; i++ )) do
+	umount "/${spmdirs[$i]}"
+	mkdir -p "/mnt/${spmdirs[$i]}"
+	mount -t ext4 -o ro,noatime "/dev/disk/by-uuid/${spuuids[$i]}" "/mnt/${spmdirs[$i]}"
+	mount -t overlay -olowerdir="/mnt/${spmdirs[$i]}",upperdir="$olwdir/${spmdirs[$i]}",workdir="$olwdir/work/${spmdirs[$i]}",noatime overlay "/${spmdirs[$i]}"
+done
+mount -o remount,ro /
+for (( i=0; i<${#rpsdirs[@]}; i++ )) do
+	mount -t overlay -olowerdir="${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime overlay "/${rpsdirs[$i]}"
+done
+
+
+echo "Finished." >> "$logfile"
+echo "===================================================" >> "$logfile"
+echo "`mount |grep '/dev/sd\|overlay' |sort`" >> "$logfile"
+echo "===================================================" >> "$logfile"
