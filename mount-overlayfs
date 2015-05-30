@@ -41,13 +41,13 @@ spuuids=(\
 ocpuuid="69c91ae4-ffa5-49ae-a088-13e7b35d027d"
 ocdir="/boot/over"
 
-# Target disk/partition (partition label), mountpoint dir, work dir
+# Target partition (partition label), mountpoint dir, work dir
 oplabel="UF32-OFS"
 opmp="/boot/over/n"
 olwdir="$opmp/lay"
 
 # Printout configuration
-date +"%A, %_d %B %Y - %T %Z" >> "$logfile"
+date +"%A, %-d %B %Y - %T %Z" >> "$logfile"
 echo "===================================================" >> "$logfile"
 echo "YSA OverlayFS DipFrizz" >> "$logfile"
 echo "Boot and running GNU/Linux system READ ONLY using OverlayFS" >> "$logfile"
@@ -87,7 +87,7 @@ function tweak_afterMountOP()
 
 	"$opmp/delete-junks"
 
-	rm /home/yadieet/.cache
+	rm -rf /home/yadieet/.cache
 	ln -s "$opmp/.cache" /home/yadieet/.cache
 }
 
@@ -140,10 +140,10 @@ function deleteSID()
 }
 
 
-# Check overlay target disk/partition
+# Check overlay target partition
 if [[ ! -e "/dev/disk/by-label/$oplabel" ]]; then
 	deleteSID
-	echo "Disk labelled '$oplabel' is not exist." >> "$logfile"
+	echo "Partition labelled '$oplabel' is not exist." >> "$logfile"
 	echo "YSA OverlayFS is not active on this boot." >> "$logfile"
 	echo "Warning: For next boot, any session WILL be invalid and destroyed." >> "$logfile"
 	echo "Finished." >> "$logfile"
@@ -153,12 +153,12 @@ fi
 
 # Fsck (random)
 if [[ $((`date +%s`%2)) == 0 ]]; then 
-	echo "Fsck on disk labelled '$oplabel'.." >> "$logfile"
+	echo "Fsck on partition labelled '$oplabel'.." >> "$logfile"
 	fsck.ext4 -fp "/dev/disk/by-label/$oplabel"
 fi
 
-# Mount overlay target disk/partition
-echo "Mounting disk/partition labelled '$oplabel'.." >> "$logfile"
+# Mount overlay target partition
+echo "Mounting partition labelled '$oplabel'.." >> "$logfile"
 if [[ ! -d $opmp ]]; then
 	deleteSID
 	echo "Error, mountpoint dir '$opmp' is not exist." >> "$logfile"

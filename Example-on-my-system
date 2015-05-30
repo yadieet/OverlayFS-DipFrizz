@@ -59,7 +59,7 @@ SanDisk  Ultra Fit        disk sdc      29.9G
 
 ┌─ [hsgn][yadieet] /tmp
 └────♦ $ cat DipFrizz.log 
-Sabtu, 30 Mei 2015 - 02:04:43 WIB
+Minggu, 31 Mei 2015 - 05:45:14 WIB
 ===================================================
 YSA OverlayFS DipFrizz
 Boot and running GNU/Linux system READ ONLY using OverlayFS
@@ -79,7 +79,8 @@ OP label : UF32-OFS
 OP mp    : /boot/over/n
 OL wdir  : /boot/over/n/lay
 ===================================================
-Mounting disk labelled 'UF32-OFS'..
+Fsck on partition labelled 'UF32-OFS'..
+Mounting partition labelled 'UF32-OFS'..
 Tweaking afterMountOP..
 Mode     : DipFrizz
 Creating new session..
