@@ -1,8 +1,14 @@
 #!/bin/bash
 
+
+##
+# External scripts, too lazy to make another services
+/boot/scripts/irq_patch
+##
+
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz
+## YSA OverlayFS DipFrizz (v1.0.6.7)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
 ## -- yadieet sa <qts19bit@gmail.com>
@@ -53,18 +59,16 @@ echo "YSA OverlayFS DipFrizz" >> "$logfile"
 echo "Boot and running GNU/Linux system READ ONLY using OverlayFS" >> "$logfile"
 echo "-- yadieet sa <qts19bit@gmail.com>" >> "$logfile"
 echo >> "$logfile"
-#echo -n "Mode     : " >> "$logfile"
-#[[ $mode == 1 ]] && echo "DipFrizz"  >> "$logfile" || echo "Keep Session" >> "$logfile"
 echo "Log File : $logfile" >> "$logfile"
 
 echo -n "RPS dirs : " >> "$logfile"
-for (( i=0; i<${#rpsdirs[@]}; i++ )) do	echo -n "${rpsdirs[$i]} " >> "$logfile"; done
+for rpsdir in "${rpsdirs[@]}"; do echo -n "$rpsdir " >> "$logfile"; done
 
 echo -ne "\nSPM dirs : " >> "$logfile"
-for (( i=0; i<${#spmdirs[@]}; i++ )) do	echo -n "${spmdirs[$i]} " >> "$logfile"; done
+for spmdir in "${spmdirs[@]}"; do echo -n "$spmdir " >> "$logfile"; done
 
 echo -e "\nSP uuids :" >> "$logfile"
-for (( i=0; i<${#spuuids[@]}; i++ )) do	echo "           ${spuuids[$i]}" >> "$logfile"; done
+for spuuid in "${spuuids[@]}"; do echo "           $spuuid" >> "$logfile"; done
 
 echo -e "\nOCP uuid : $ocpuuid" >> "$logfile"
 echo "OC dir   : $ocdir" >> "$logfile"
@@ -88,7 +92,9 @@ function tweak_afterMountOP()
 	"$opmp/delete-junks"
 
 	rm -rf /home/yadieet/.cache
+	rm -rf /home/yadieet/.TelegramDesktop
 	ln -s "$opmp/.cache" /home/yadieet/.cache
+	ln -s "$opmp/.TelegramDesktop" /home/yadieet/.TelegramDesktop
 }
 
 function newSession()
@@ -98,16 +104,16 @@ function newSession()
 	rm -rf "$olwdir/work"
 	mkdir "$olwdir/work"
 
-	for (( i=0; i<${#rpsdirs[@]}; i++ )) do
-		rm -rf "$olwdir/${rpsdirs[$i]}"
-		mkdir  "$olwdir/${rpsdirs[$i]}"
-		mkdir  "$olwdir/work/${rpsdirs[$i]}"
+	for rpsdir in "${rpsdirs[@]}"; do
+		rm -rf "$olwdir/$rpsdir"
+		mkdir  "$olwdir/$rpsdir"
+		mkdir  "$olwdir/work/$rpsdir"
 	done
 
-	for (( i=0; i<${#spmdirs[@]}; i++ )) do
-		rm -rf "$olwdir/${spmdirs[$i]}"
-		mkdir  "$olwdir/${spmdirs[$i]}"
-		mkdir  "$olwdir/work/${spmdirs[$i]}"
+	for spmdir in "${spmdirs[@]}"; do
+		rm -rf "$olwdir/$spmdir"
+		mkdir  "$olwdir/$spmdir"
+		mkdir  "$olwdir/work/$spmdir"
 	done
 	
 	# TWEAKZ
@@ -134,9 +140,9 @@ function checkSession()
 function deleteSID()
 {
 	echo "Deleting SID on '$ocdir'.." >> "$logfile"
-	mount -o remount,rw "/dev/disk/by-uuid/$ocpuuid"
+	mount -o remount,rw,noatime "/dev/disk/by-uuid/$ocpuuid"
 	rm "$ocdir/DO-NOT-DELETE-ME"
-	mount -o remount,ro "/dev/disk/by-uuid/$ocpuuid"
+	mount -o remount,ro,noatime "/dev/disk/by-uuid/$ocpuuid"
 }
 
 
@@ -151,11 +157,12 @@ if [[ ! -e "/dev/disk/by-label/$oplabel" ]]; then
 fi
 
 
-# Fsck (random)
-if [[ $((`date +%s`%2)) == 0 ]]; then 
+## Fsck (random)
+#if [[ $((`date +%s`%2)) == 0 ]]; then 
+	# Always fsck
 	echo "Fsck on partition labelled '$oplabel'.." >> "$logfile"
-	fsck.ext4 -fp "/dev/disk/by-label/$oplabel"
-fi
+	fsck.ext4 -fy "/dev/disk/by-label/$oplabel"
+#fi
 
 # Mount overlay target partition
 echo "Mounting partition labelled '$oplabel'.." >> "$logfile"
@@ -210,7 +217,7 @@ fi
 
 
 echo "Saving SID.." >> "$logfile"
-mount -o remount,rw "/dev/disk/by-uuid/$ocpuuid"
+mount -o remount,rw,noatime "/dev/disk/by-uuid/$ocpuuid"
 id=`date +%s`
 echo $id > "$ocdir/DO-NOT-DELETE-ME"
 if [[ $mode == 2 ]]; then
@@ -218,7 +225,7 @@ if [[ $mode == 2 ]]; then
 else
 	echo 0 > "$olwdir/DO-NOT-DELETE-ME"
 fi
-mount -o remount,ro "/dev/disk/by-uuid/$ocpuuid"
+mount -o remount,ro,noatime "/dev/disk/by-uuid/$ocpuuid"
 
 
 echo "Applying overlayfs.." >> "$logfile"
@@ -228,7 +235,7 @@ for (( i=0; i<${#spmdirs[@]}; i++ )) do
 	mount -t ext4 -o ro,noatime "/dev/disk/by-uuid/${spuuids[$i]}" "/mnt/${spmdirs[$i]}"
 	mount -t overlay -olowerdir="/mnt/${spmdirs[$i]}",upperdir="$olwdir/${spmdirs[$i]}",workdir="$olwdir/work/${spmdirs[$i]}",noatime overlay "/${spmdirs[$i]}"
 done
-mount -o remount,ro /
+mount -o remount,ro,noatime /
 for (( i=0; i<${#rpsdirs[@]}; i++ )) do
 	mount -t overlay -olowerdir="${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime overlay "/${rpsdirs[$i]}"
 done
@@ -238,3 +245,4 @@ echo "Finished." >> "$logfile"
 echo "===================================================" >> "$logfile"
 echo "`mount |grep '/dev/sd\|overlay' |sort`" >> "$logfile"
 echo "===================================================" >> "$logfile"
+cat "$logfile" |grep "overlay on" |wc -l >> "$logfile"
