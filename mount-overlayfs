@@ -8,7 +8,7 @@
 
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz (v1.0.6.7)
+## YSA OverlayFS DipFrizz (v1.0.6.9)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
 ## -- yadieet sa <qts19bit@gmail.com>
@@ -93,8 +93,10 @@ function tweak_afterMountOP()
 
 	rm -rf /home/yadieet/.cache
 	rm -rf /home/yadieet/.TelegramDesktop
+	rm -rf /home/yadieet/.telegram-cli
 	ln -s "$opmp/.cache" /home/yadieet/.cache
 	ln -s "$opmp/.TelegramDesktop" /home/yadieet/.TelegramDesktop
+	ln -s "$opmp/.telegram-cli" /home/yadieet/.telegram-cli
 }
 
 function newSession()
@@ -183,8 +185,8 @@ tweak_afterMountOP
 
 
 # Check request disable
-if [[ -e "$olwdir/act/disable" ]]; then
-	echo "File '$olwdir/disable' exist. Cancelled." >> "$logfile"
+if [[ -e "$olwdir/act/disable" || ! -z $(cat /proc/cmdline |grep " disable-ofs \| disable-ofs$") ]]; then
+	echo "File '$olwdir/disable' exist, or 'disable-ofs' kernel boot param exist. Cancelled." >> "$logfile"
 	echo "YSA OverlayFS is not active on this boot. " >> "$logfile"
 	echo "Warning: For next boot, any session WILL be invalid and destroyed." >> "$logfile"
 	echo "Finished." >> "$logfile"
