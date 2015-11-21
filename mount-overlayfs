@@ -8,7 +8,7 @@
 
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz (v1.0.6.9)
+## YSA OverlayFS DipFrizz (v1.0.7.0)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
 ## -- yadieet sa <qts19bit@gmail.com>
@@ -239,7 +239,7 @@ for (( i=0; i<${#spmdirs[@]}; i++ )) do
 done
 mount -o remount,ro,noatime /
 for (( i=0; i<${#rpsdirs[@]}; i++ )) do
-	mount -t overlay -olowerdir="${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime overlay "/${rpsdirs[$i]}"
+	mount -t overlay -olowerdir="/${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime overlay "/${rpsdirs[$i]}"
 done
 
 
