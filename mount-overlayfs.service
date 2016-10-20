@@ -3,10 +3,10 @@
 [Unit]
 Description=YSA OverlayFS DipFrizz
 DefaultDependencies=no
-After=systemd-remount-fs.service
-Before=local-fs.target systemd-journald.service sysinit.target systemd-backlight@backlight:acpi_video0.service systemd-backlight@backlight:radeon_bl0.service systemd-rfkill@rfkill0.service systemd-rfkill@rfkill1.service systemd-random-seed.service
-Wants=local-fs.target
-RequiresMountsFor=/boot /var /home /temp
+Requires=systemd-remount-fs.service tmp.mount
+After=systemd-remount-fs.service tmp.mount
+Before=local-fs.target sysinit.target systemd-journald.service
+RequiresMountsFor=/boot /var /home
 
 [Service]
 Type=oneshot

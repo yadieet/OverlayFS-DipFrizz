@@ -3,15 +3,17 @@
 
 ##
 # External scripts, too lazy to make another services
+/boot/scripts/disable_disk_writes_cache
 /boot/scripts/irq_patch
 ##
 
+
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz (v1.0.7.0)
+## YSA OverlayFS DipFrizz (v1.0.7.1)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
-## -- yadieet sa <qts19bit@gmail.com>
+## -- yadieet sa <yadieet@gmail.com>
 
 # Default mode : Keep Session
 mode=2
@@ -33,14 +35,12 @@ rpsdirs=(\
 spmdirs=(\
 "var" \
 "home" \
-"temp" \
 )
 
 # Separate partition uuids of root subdirs
 spuuids=(\
 "5147dfb7-a198-4e27-8e00-f29c752a427f" \
 "574eceb8-4fe5-494f-a194-5399ccdec9be" \
-"2743c114-7cb9-41cf-8755-eb585059ca48" \
 )
 
 # Script-home partition & directory
@@ -57,7 +57,7 @@ date +"%A, %-d %B %Y - %T %Z" >> "$logfile"
 echo "===================================================" >> "$logfile"
 echo "YSA OverlayFS DipFrizz" >> "$logfile"
 echo "Boot and running GNU/Linux system READ ONLY using OverlayFS" >> "$logfile"
-echo "-- yadieet sa <qts19bit@gmail.com>" >> "$logfile"
+echo "-- yadieet sa <yadieet@gmail.com>" >> "$logfile"
 echo >> "$logfile"
 echo "Log File : $logfile" >> "$logfile"
 
@@ -97,6 +97,9 @@ function tweak_afterMountOP()
 	ln -s "$opmp/.cache" /home/yadieet/.cache
 	ln -s "$opmp/.TelegramDesktop" /home/yadieet/.TelegramDesktop
 	ln -s "$opmp/.telegram-cli" /home/yadieet/.telegram-cli
+	
+	rm -rf /var/cache/squid
+	ln -s /boot/over/n/squid-cache /var/cache/squid
 }
 
 function newSession()

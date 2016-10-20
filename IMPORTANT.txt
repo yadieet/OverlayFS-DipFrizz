@@ -1,0 +1,5 @@
+`mount-overlayfs` & `mount-overlayfs.service` here are for MY SYSTEM.
+
+So, you must edit / modify `mount-overlayfs` and `mount-overlayfs.service` according to YOUR SYSTEM.
+
+USE / EDIT `OverlayFS-DipFrizz` AT YOUR OWN RISK.
