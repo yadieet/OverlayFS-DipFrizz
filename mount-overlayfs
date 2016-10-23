@@ -10,7 +10,7 @@
 
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz (v1.0.7.1)
+## YSA OverlayFS DipFrizz (v1.0.7.2)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
 ## -- yadieet sa <yadieet@gmail.com>
@@ -89,17 +89,18 @@ function tweak_afterMountOP()
 {
 	echo "Tweaking afterMountOP.." >> "$logfile"
 
-	"$opmp/delete-junks"
+	#"$opmp/delete-junks"
 
-	rm -rf /home/yadieet/.cache
-	rm -rf /home/yadieet/.TelegramDesktop
-	rm -rf /home/yadieet/.telegram-cli
-	ln -s "$opmp/.cache" /home/yadieet/.cache
-	ln -s "$opmp/.TelegramDesktop" /home/yadieet/.TelegramDesktop
-	ln -s "$opmp/.telegram-cli" /home/yadieet/.telegram-cli
+
+	#rm -rf /home/yadieet/.cache
+	#rm -rf /home/yadieet/.TelegramDesktop
+	#rm -rf /home/yadieet/.telegram-cli
+	#ln -s "$opmp/.cache" /home/yadieet/.cache
+	#ln -s "$opmp/.TelegramDesktop" /home/yadieet/.TelegramDesktop
+	#ln -s "$opmp/.telegram-cli" /home/yadieet/.telegram-cli
 	
-	rm -rf /var/cache/squid
-	ln -s /boot/over/n/squid-cache /var/cache/squid
+	#rm -rf /var/cache/squid
+	#ln -s /boot/over/n/squid-cache /var/cache/squid
 }
 
 function newSession()
@@ -162,12 +163,10 @@ if [[ ! -e "/dev/disk/by-label/$oplabel" ]]; then
 fi
 
 
-## Fsck (random)
-#if [[ $((`date +%s`%2)) == 0 ]]; then 
-	# Always fsck
-	echo "Fsck on partition labelled '$oplabel'.." >> "$logfile"
-	fsck.ext4 -fy "/dev/disk/by-label/$oplabel"
-#fi
+# Always fsck
+echo "Fsck on partition labelled '$oplabel'.." >> "$logfile"
+fsck.ext4 -fy "/dev/disk/by-label/$oplabel"
+
 
 # Mount overlay target partition
 echo "Mounting partition labelled '$oplabel'.." >> "$logfile"
