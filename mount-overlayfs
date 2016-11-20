@@ -10,7 +10,7 @@
 
 ## File: /boot/over/mount-overlayfs
 
-## YSA OverlayFS DipFrizz (v1.0.7.3)
+## YSA OverlayFS DipFrizz (v1.0.8)
 ## Boot and running GNU/Linux system READ ONLY using OverlayFS
 ## -- https://github.com/yadieet/OverlayFS-DipFrizz
 ## -- yadieet sa <yadieet@gmail.com>
@@ -81,7 +81,7 @@ function tweak_afterCreateNewSession()
 {
 	echo "Tweaking afterCreateNewSession.." >> "$logfile"
 
-	
+
 }
 
 function tweak_afterMountOP()
@@ -234,18 +234,19 @@ mount -o remount,ro,noatime "/dev/disk/by-uuid/$ocpuuid"
 echo "Applying overlayfs.." >> "$logfile"
 mount -o remount,ro,noatime /
 for (( i=0; i<${#rpsdirs[@]}; i++ )) do
-	mount -t overlay -olowerdir="/${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime overlay "/${rpsdirs[$i]}"
+	mount -t overlay -olowerdir="/${rpsdirs[$i]}",upperdir="$olwdir/${rpsdirs[$i]}",workdir="$olwdir/work/${rpsdirs[$i]}",noatime "${rpsdirs[$i]}" "/${rpsdirs[$i]}"
 done
 for (( i=0; i<${#spmdirs[@]}; i++ )) do
 	umount "/${spmdirs[$i]}"
 	mkdir  "/mnt/.[${spmdirs[$i]}]"
 	mount -t ext4 -o ro,noatime "/dev/disk/by-uuid/${spuuids[$i]}" "/mnt/.[${spmdirs[$i]}]"
-	mount -t overlay -olowerdir="/mnt/.[${spmdirs[$i]}]",upperdir="$olwdir/${spmdirs[$i]}",workdir="$olwdir/work/${spmdirs[$i]}",noatime overlay "/${spmdirs[$i]}"
+	mount -t overlay -olowerdir="/mnt/.[${spmdirs[$i]}]",upperdir="$olwdir/${spmdirs[$i]}",workdir="$olwdir/work/${spmdirs[$i]}",noatime "${spmdirs[$i]}" "/${spmdirs[$i]}"
 done
 
 
 echo "Finished." >> "$logfile"
 echo "===================================================" >> "$logfile"
-echo "`mount |grep '/dev/sd\|overlay' |sort`" >> "$logfile"
+a=`mount |grep '/dev/sd\|overlay'`
+echo "$a" |sort >> "$logfile"
 echo "===================================================" >> "$logfile"
-cat "$logfile" |grep "overlay on" |wc -l >> "$logfile"
+echo "$a" |grep "type overlay" |wc -l >> "$logfile"
